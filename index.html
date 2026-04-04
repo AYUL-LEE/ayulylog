@@ -947,32 +947,32 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfRCJSLMlIyMRA5PKGr
     }
   }
 
-  // ── 초기화 ──
-  function init() {
-    // 샘플 데이터
-    const { h, m } = getCurrentSlot();
-    if (isInRange(h)) {
-      const prevMin = m === 0 ? 45 : m - 15;
-      const prevH = m === 0 ? h - 1 : h;
-      if (isInRange(prevH)) {
-        slotData[getSlotKey(prevH, prevMin)] = { cat: '💼 업무', customCat: '' };
-        getCatColor('💼 업무');
-      }
-      const prev2Min = prevMin === 0 ? 45 : prevMin - 15;
-      const prev2H = prevMin === 0 ? prevH - 1 : prevH;
-      if (isInRange(prev2H)) {
-        slotData[getSlotKey(prev2H, prev2Min)] = { cat: '📚 공부', customCat: '' };
-        getCatColor('📚 공부');
-      }
-    }
-
+ function init() {
     changeDate(0);
     updateFocusCard();
     lastSlotKey = getCurrentSlot().key;
     updateTimer();
     setInterval(updateTimer, 1000);
+    loadFromSheet(getDateStr());
   }
 
+  function loadFromSheet(date) {
+    fetch(`${SCRIPT_URL}?date=${date}`)
+      .then(r => r.json())
+      .then(data => {
+        data.slots.forEach(s => {
+          slotData[s.time] = { cat: s.cat, customCat: '' };
+          getCatColor(s.cat);
+        });
+        data.hours.forEach(h => {
+          hourData[h.hour] = { food: h.food, buy: h.buy, insight: h.insight };
+        });
+        buildTimeline();
+        updateFocusCard();
+      })
+      .catch(err => console.log(err));
+  }
+  
   init();
 </script>
 </body>
