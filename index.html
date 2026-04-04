@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>슬롯 로그</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F4F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE8;
+    --border: #E8E3DC;
+    --text: #2C2825;
+    --text-muted: #9B9189;
+    --accent: #E8A598;
+    --accent2: #A8C5B5;
+    --accent3: #B8A8D4;
+    --accent4: #F0D09A;
+    --slot-active: #FFF0EC;
+    --slot-active-border: #E8A598;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Gowun Dodum', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── 상단 헤더 ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 18px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .date-nav button {
+    background: var(--surface2);
+    border: none;
+    border-radius: 50%;
+    width: 30px; height: 30px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .date-nav button:hover { background: var(--border); }
+
+  .date-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+  }
+  .date-label strong {
+    color: var(--text);
+    font-size: 15px;
+    display: block;
+    text-align: center;
+  }
+
+  /* ── 현재 슬롯 포커스 카드 ── */
+  .focus-card {
+    background: linear-gradient(135deg, #FFF5F2 0%, #FFF0EC 100%);
+    border: 1.5px solid var(--slot-active-border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .timer-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 64px;
+  }
+
+  .timer-ring {
+    position: relative;
+    width: 52px; height: 52px;
+  }
+  .timer-ring svg {
+    transform: rotate(-90deg);
+  }
+  .timer-ring .track { fill: none; stroke: #F0D8D2; stroke-width: 4; }
+  .timer-ring .progress { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round;
+    stroke-dasharray: 138;
+    stroke-dashoffset: 40;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .timer-label {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .timer-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 3px;
+  }
+
+  .focus-info {
+    flex: 1;
+  }
+  .focus-slot-time {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 4px;
+  }
+  .focus-category {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .focus-category.empty {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .cat-chips {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
+  .cat-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+  }
+  .cat-chip:hover, .cat-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .cat-chip.alt { }
+  .cat-chip.input-chip {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-muted);
+  }
+  .cat-chip.input-chip:hover {
+    background: var(--surface2);
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  /* ── 타임라인 ── */
+  .timeline-section {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 10px 80px;
+  }
+
+  /* 한 행 = 시간레이블 + 슬롯4개 + 📝버튼 */
+  .hour-row {
+    display: grid;
+    grid-template-columns: 36px 1fr 1fr 1fr 1fr 28px;
+    gap: 3px;
+    align-items: stretch;
+    margin-bottom: 3px;
+  }
+
+  .hour-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4px;
+    padding-top: 2px;
+  }
+
+  .hour-note-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+    color: var(--text-muted);
+    padding: 0;
+  }
+  .hour-note-btn:hover {
+    border-color: var(--accent2);
+    background: #F0F8F4;
+  }
+  .hour-note-btn.has-data {
+    border-style: solid;
+    border-color: var(--accent2);
+    background: #F0F8F4;
+    color: var(--accent2);
+  }
+
+  .slot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 5px 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    min-height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .slot:hover {
+    border-color: var(--accent);
+    background: #FFF8F6;
+  }
+  .slot.active {
+    background: var(--slot-active);
+    border-color: var(--slot-active-border);
+    border-width: 1.5px;
+  }
+  .slot.past {
+    opacity: 0.55;
+  }
+
+  .slot-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text-muted);
+  }
+  .slot.active .slot-time { color: var(--accent); }
+  .slot.colored .slot-time { color: rgba(0,0,0,0.4); }
+
+  /* 카테고리 색상 채우기 */
+  .slot.colored {
+    border-color: transparent;
+  }
+  .slot.colored:hover {
+    filter: brightness(0.95);
+  }
+
+  .slot-cat-label {
+    font-size: 8px;
+    color: rgba(0,0,0,0.5);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+
+  /* ── 시간당 기록 패널 ── */
+  .hour-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    margin-bottom: 6px;
+    transition: all 0.2s;
+  }
+  .hour-panel.open { border-color: var(--accent2); }
+
+  .hour-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .hour-panel-header .icon { font-size: 12px; }
+  .hour-panel-header .title {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .hour-panel.open .hour-panel-header .title { color: var(--accent2); }
+  .hour-panel-header .arrow {
+    font-size: 10px;
+    color: var(--text-muted);
+    transition: transform 0.2s;
+  }
+  .hour-panel.open .arrow { transform: rotate(180deg); }
+
+  .hour-panel-body {
+    display: none;
+    padding: 0 12px 12px;
+    gap: 8px;
+    flex-direction: column;
+  }
+  .hour-panel.open .hour-panel-body { display: flex; }
+
+  .record-field label {
+    font-size: 10px;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 3px;
+  }
+  .record-field input, .record-field textarea {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 9px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+    resize: none;
+    transition: border 0.15s;
+  }
+  .record-field input:focus, .record-field textarea:focus {
+    border-color: var(--accent2);
+    background: white;
+  }
+
+  .save-btn {
+    background: var(--accent2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 12px;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: opacity 0.15s;
+  }
+  .save-btn:hover { opacity: 0.85; }
+
+  /* ── 슬롯 모달 ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(44, 40, 37, 0.35);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px 36px;
+    width: 100%;
+    max-width: 430px;
+    animation: slideUp 0.25s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal-slot-time {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .modal-title {
+    font-size: 15px;
+    margin-bottom: 14px;
+  }
+  .modal-cats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 14px;
+  }
+  .modal-cat-chip {
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'Gowun Dodum', sans-serif;
+  }
+  .modal-cat-chip:hover, .modal-cat-chip.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .modal-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 13px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 13px;
+    color: var(--text);
+    outline: none;
+    margin-bottom: 14px;
+    transition: border 0.15s;
+  }
+  .modal-input:focus { border-color: var(--accent); background: white; }
+  .modal-input::placeholder { color: var(--text-muted); }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .modal-cancel {
+    flex: 1;
+    background: var(--surface2);
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .modal-save {
+    flex: 2;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 11px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 13px;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .modal-save:hover { opacity: 0.88; }
+
+  /* ── 하단 탭 ── */
+  .bottom-tab {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 10px 0 18px;
+  }
+  .tab-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'Gowun Dodum', sans-serif;
+    color: var(--text-muted);
+    font-size: 10px;
+    padding: 0;
+    transition: color 0.15s;
+  }
+  .tab-btn .tab-icon { font-size: 18px; }
+  .tab-btn.active { color: var(--accent); }
+
+  .recent-chip {
+    border-style: solid !important;
+    font-weight: 600;
+    opacity: 0.85;
+  }
+
+  .hour-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* scrollbar */
+  .timeline-section::-webkit-scrollbar { width: 3px; }
+  .timeline-section::-webkit-scrollbar-track { background: transparent; }
+  .timeline-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- 상단 헤더 -->
+<div class="header">
+  <div class="date-nav">
+    <button onclick="changeDate(-1)">‹</button>
+    <div class="date-label">
+      <strong id="dateLabel">오늘</strong>
+      <span id="dateSubLabel">2025년 4월 4일 토요일</span>
+    </div>
+    <button onclick="changeDate(1)">›</button>
+  </div>
+
+  <!-- 현재 슬롯 포커스 카드 -->
+  <div class="focus-card">
+    <div class="timer-block">
+      <div class="timer-ring">
+        <svg width="52" height="52" viewBox="0 0 52 52">
+          <circle class="track" cx="26" cy="26" r="22"/>
+          <circle class="progress" id="timerProgress" cx="26" cy="26" r="22"/>
+        </svg>
+        <div class="timer-label" id="timerText">8:23</div>
+      </div>
+      <div class="timer-sub">남음</div>
+    </div>
+    <div class="focus-info">
+      <div class="focus-slot-time" id="currentSlotTime">14:30 – 14:45</div>
+      <div class="focus-category" id="currentCategory">집중 작업</div>
+      <div class="cat-chips">
+        <div class="cat-chip active" onclick="quickCat(this,'운전')">🚗 운전</div>
+        <div class="cat-chip" onclick="quickCat(this,'도하')">👶 도하</div>
+        <div class="cat-chip" onclick="quickCat(this,'식사')">🍚 식사</div>
+        <div class="cat-chip input-chip" onclick="openModal(currentSlotIndex)">+ 직접입력</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 타임라인 -->
+<div class="timeline-section" id="timeline"></div>
+
+<!-- 슬롯 모달 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-slot-time" id="modalSlotTime">14:30 – 14:45</div>
+    <div class="modal-title">이 시간에 뭘 했나요?</div>
+    <div id="recentCatChip" class="modal-cat-chip recent-chip" style="display:none; margin-bottom:8px;"></div>
+    <div class="modal-cats">
+      <div class="modal-cat-chip" data-catval="🚗 운전" onclick="selectModalCat(this,'🚗 운전')">🚗 운전</div>
+      <div class="modal-cat-chip" data-catval="👶 도하" onclick="selectModalCat(this,'👶 도하')">👶 도하</div>
+      <div class="modal-cat-chip" data-catval="🍚 식사" onclick="selectModalCat(this,'🍚 식사')">🍚 식사</div>
+      <div class="modal-cat-chip" data-catval="💼 업무" onclick="selectModalCat(this,'💼 업무')">💼 업무</div>
+      <div class="modal-cat-chip" data-catval="📚 공부" onclick="selectModalCat(this,'📚 공부')">📚 공부</div>
+      <div class="modal-cat-chip" data-catval="🏃 운동" onclick="selectModalCat(this,'🏃 운동')">🏃 운동</div>
+      <div class="modal-cat-chip" data-catval="😴 휴식" onclick="selectModalCat(this,'😴 휴식')">😴 휴식</div>
+    </div>
+    <input class="modal-input" id="modalInput" placeholder="직접 입력..." />
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">취소</button>
+      <button class="modal-save" onclick="saveSlot()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 시간당 기록 모달 -->
+<div class="modal-overlay" id="hourModalOverlay" onclick="closeHourModal(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-slot-time" id="hourModalTitle">14시 기록</div>
+    <div class="hour-modal-body">
+      <div class="record-field">
+        <label>🍽 먹은 것</label>
+        <input type="text" id="hourModalFood" placeholder="예: 아메리카노, 바나나" />
+      </div>
+      <div class="record-field">
+        <label>🛍 산 것</label>
+        <input type="text" id="hourModalBuy" placeholder="예: 편의점 과자 2,000원" />
+      </div>
+      <div class="record-field">
+        <label>💡 인사이트</label>
+        <textarea id="hourModalInsight" rows="3" placeholder="이 시간에 깨달은 것, 생각..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions" style="margin-top:14px">
+      <button class="modal-cancel" onclick="closeHourModal()">취소</button>
+      <button class="modal-save" onclick="saveHourModal()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 하단 탭 -->
+<div class="bottom-tab">
+  <button class="tab-btn active">
+    <span class="tab-icon">📋</span>
+    오늘
+  </button>
+  <button class="tab-btn">
+    <span class="tab-icon">📊</span>
+    리뷰
+  </button>
+  <button class="tab-btn">
+    <span class="tab-icon">⚙️</span>
+    설정
+  </button>
+</div>
+
+<script>
+  // ── 슬롯 시간 범위: 06:00 ~ 익일 03:00 ──
+  // 인덱스 0 = 06:00, 마지막 = 27:00(=03:00 다음날)
+  // hour 값은 6~27 (27=다음날 3시)
+  const SLOT_HOURS = [];
+  for (let h = 6; h <= 27; h++) SLOT_HOURS.push(h); // 22개 시간
+
+  // ── 카테고리 → 파스텔 색상 매핑 ──
+  const CAT_PALETTE = [
+    '#FADADD', // 핑크
+    '#D4ECD4', // 민트
+    '#FDE9C2', // 노랑
+    '#D4E4F7', // 하늘
+    '#E8D4F0', // 라벤더
+    '#FFE4CC', // 피치
+    '#D4F0E8', // 청록
+    '#F0EAD4', // 베이지
+    '#F7D4E8', // 로즈
+    '#D4D4F7', // 퍼플
+  ];
+  const catColorMap = {};
+  let colorIndex = 0;
+
+  function getCatColor(cat) {
+    if (!cat) return null;
+    if (!catColorMap[cat]) {
+      catColorMap[cat] = CAT_PALETTE[colorIndex % CAT_PALETTE.length];
+      colorIndex++;
+    }
+    return catColorMap[cat];
+  }
+
+  // ── 데이터 ──
+  const slotData = {};   // key: "HH:MM" (실제 시각 기준) → { cat, customCat }
+  const hourData = {};   // key: "HH" → { food, buy, insight }
+
+  let lastUsedCat = '';  // 직전 입력 카테고리
+  let selectedModalCat = '';
+  let editingSlotKey = '';
+  let editingHourKey = '';
+
+  // ── 시간 계산 ──
+  function getNow() { return new Date(); }
+
+  // hour: 6~27 → 실제 시각 hour: 6~23, 24→0, 25→1, 26→2, 27→3
+  function realHour(h) { return h >= 24 ? h - 24 : h; }
+
+  function getSlotKey(h, m) {
+    return `${String(realHour(h)).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  }
+
+  function displayHour(h) {
+    // h: 6~27
+    if (h >= 24) return `+${String(h-24).padStart(2,'0')}`;
+    return String(h).padStart(2,'0');
+  }
+
+  function getCurrentSlot() {
+    const now = getNow();
+    const rh = now.getHours();
+    const m = Math.floor(now.getMinutes() / 15) * 15;
+    // 슬롯 범위 내인지 확인 (6~23 또는 0~3 = 24~27)
+    const h = rh < 4 ? rh + 24 : rh; // 0~3시 → 24~27
+    return { h, m, key: getSlotKey(h, m) };
+  }
+
+  function isInRange(h) {
+    return h >= 6 && h <= 27;
+  }
+
+  function getSecondsLeft() {
+    const now = getNow();
+    const elapsed = (now.getMinutes() % 15) * 60 + now.getSeconds();
+    return 15 * 60 - elapsed;
+  }
+
+  // ── 타이머 ──
+  let lastSlotKey = '';
+  function updateTimer() {
+    const secs = getSecondsLeft();
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    document.getElementById('timerText').textContent = `${m}:${String(s).padStart(2,'0')}`;
+    const pct = secs / (15 * 60);
+    const circumference = 2 * Math.PI * 22;
+    document.getElementById('timerProgress').style.strokeDashoffset = circumference * (1 - pct);
+
+    const { key } = getCurrentSlot();
+    if (key !== lastSlotKey) { lastSlotKey = key; buildTimeline(); updateFocusCard(); }
+  }
+
+  // ── 포커스 카드 ──
+  function updateFocusCard() {
+    const { h, m } = getCurrentSlot();
+    const endM = m + 15;
+    const endH = endM >= 60 ? h + 1 : h;
+    const endMM = endM >= 60 ? 0 : endM;
+    document.getElementById('currentSlotTime').textContent =
+      `${displayHour(h)}:${String(m).padStart(2,'0')} – ${displayHour(endH)}:${String(endMM).padStart(2,'0')}`;
+
+    const { key } = getCurrentSlot();
+    const d = slotData[key];
+    const catEl = document.getElementById('currentCategory');
+    const cat = d?.cat || d?.customCat || '';
+    if (cat) {
+      catEl.textContent = cat;
+      catEl.classList.remove('empty');
+      catEl.style.color = getCatColor(cat) ? '' : '';
+    } else {
+      catEl.textContent = '지금 뭐 하고 있어요?';
+      catEl.classList.add('empty');
+    }
+  }
+
+  function quickCat(el, cat) {
+    document.querySelectorAll('.focus-card .cat-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    const { key } = getCurrentSlot();
+    slotData[key] = { cat, customCat: '' };
+    lastUsedCat = cat;
+    getCatColor(cat);
+    updateFocusCard();
+    buildTimeline();
+  }
+
+  // ── 날짜 ──
+  let dateOffset = 0;
+  function changeDate(d) {
+    dateOffset += d;
+    const dt = new Date();
+    dt.setDate(dt.getDate() + dateOffset);
+    const days = ['일','월','화','수','목','금','토'];
+    document.getElementById('dateLabel').textContent =
+      dateOffset === 0 ? '오늘' : dateOffset === -1 ? '어제' : dateOffset === 1 ? '내일' :
+      `${dt.getMonth()+1}월 ${dt.getDate()}일`;
+    document.getElementById('dateSubLabel').textContent =
+      `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 ${days[dt.getDay()]}요일`;
+    buildTimeline();
+  }
+
+  // ── 타임라인 빌드 ──
+  function buildTimeline() {
+    const timeline = document.getElementById('timeline');
+    timeline.innerHTML = '';
+    const { h: curH, m: curM } = getCurrentSlot();
+
+    for (let h = 6; h <= 27; h++) {
+      const hKey = String(realHour(h)).padStart(2,'0');
+      const hd = hourData[hKey] || {};
+      const hasData = hd.food || hd.buy || hd.insight;
+
+      const row = document.createElement('div');
+      row.className = 'hour-row';
+      row.id = `hour-row-${h}`;
+
+      // 왼쪽 시간 레이블
+      const label = document.createElement('div');
+      label.className = 'hour-label';
+      // 자정(24) 넘어가면 색상으로 구분
+      label.style.color = h >= 24 ? '#B8A8D4' : '';
+      label.textContent = h >= 24 ? `+${String(h-24).padStart(2,'0')}` : String(h).padStart(2,'0');
+      row.appendChild(label);
+
+      // 슬롯 4개
+      [0, 15, 30, 45].forEach(min => {
+        const key = getSlotKey(h, min);
+        const d = slotData[key] || {};
+        const isActive = dateOffset === 0 && h === curH && min === curM;
+        const isPast = dateOffset < 0 ||
+          (dateOffset === 0 && (h < curH || (h === curH && min < curM)));
+
+        const slot = document.createElement('div');
+        const cat = d.cat || d.customCat || '';
+        const color = cat ? getCatColor(cat) : null;
+
+        slot.className = `slot ${isActive ? 'active' : ''} ${isPast && !isActive ? 'past' : ''} ${color ? 'colored' : ''}`;
+        slot.id = `slot-${key}-${h}`;
+
+        if (color && !isActive) {
+          slot.style.backgroundColor = color;
+          slot.style.borderColor = color;
+        }
+
+        slot.innerHTML = `
+          <div class="slot-time">:${String(min).padStart(2,'0')}</div>
+          ${cat ? `<div class="slot-cat-label">${cat}</div>` : ''}
+        `;
+        slot.onclick = () => openModal(key, h, min);
+        row.appendChild(slot);
+      });
+
+      // 오른쪽 📝 버튼
+      const noteBtn = document.createElement('button');
+      noteBtn.className = `hour-note-btn ${hasData ? 'has-data' : ''}`;
+      noteBtn.textContent = hasData ? '✓' : '📝';
+      noteBtn.title = `${h >= 24 ? h-24 : h}시 기록`;
+      noteBtn.onclick = () => openHourModal(hKey, h >= 24 ? h-24 : h);
+      row.appendChild(noteBtn);
+
+      timeline.appendChild(row);
+    }
+
+    // 현재 시간이 범위 내면 해당 행으로 스크롤
+    if (dateOffset === 0 && isInRange(curH)) {
+      setTimeout(() => {
+        const el = document.getElementById(`hour-row-${curH}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  }
+
+  // ── 시간당 기록 ──
+  function openHourModal(hKey, hour) {
+    editingHourKey = hKey;
+    const hd = hourData[hKey] || {};
+    document.getElementById('hourModalTitle').textContent = `${hour}시 기록`;
+    document.getElementById('hourModalFood').value = hd.food || '';
+    document.getElementById('hourModalBuy').value = hd.buy || '';
+    document.getElementById('hourModalInsight').value = hd.insight || '';
+    document.getElementById('hourModalOverlay').classList.add('open');
+  }
+
+  function saveHourModal() {
+    if (!hourData[editingHourKey]) hourData[editingHourKey] = {};
+    hourData[editingHourKey].food = document.getElementById('hourModalFood').value;
+    hourData[editingHourKey].buy = document.getElementById('hourModalBuy').value;
+    hourData[editingHourKey].insight = document.getElementById('hourModalInsight').value;
+    document.getElementById('hourModalOverlay').classList.remove('open');
+    buildTimeline();
+  }
+
+  function closeHourModal(e) {
+    if (!e || e.target === document.getElementById('hourModalOverlay'))
+      document.getElementById('hourModalOverlay').classList.remove('open');
+  }
+
+  // ── 슬롯 모달 ──
+  function openModal(key, h, min) {
+    editingSlotKey = key;
+    selectedModalCat = slotData[key]?.cat || '';
+    const endMin = min + 15;
+    const endH = endMin >= 60 ? h + 1 : h;
+    const endMM = endMin >= 60 ? 0 : endMin;
+    document.getElementById('modalSlotTime').textContent =
+      `${displayHour(h)}:${String(min).padStart(2,'0')} – ${displayHour(endH)}:${String(endMM).padStart(2,'0')}`;
+    document.getElementById('modalInput').value = slotData[key]?.customCat || '';
+
+    // 직전 입력값 칩 업데이트
+    const recentChip = document.getElementById('recentCatChip');
+    if (lastUsedCat) {
+      recentChip.style.display = 'block';
+      recentChip.textContent = `↩ ${lastUsedCat}`;
+      recentChip.style.backgroundColor = getCatColor(lastUsedCat) || '';
+      recentChip.onclick = () => selectModalCat(recentChip, lastUsedCat);
+    } else {
+      recentChip.style.display = 'none';
+    }
+
+    document.querySelectorAll('.modal-cat-chip').forEach(c => {
+      c.classList.toggle('selected', c.dataset.catval === selectedModalCat);
+    });
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (!e || e.target === document.getElementById('modalOverlay'))
+      document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  function selectModalCat(el, cat) {
+    document.querySelectorAll('.modal-cat-chip, #recentCatChip').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedModalCat = cat;
+    document.getElementById('modalInput').value = '';
+  }
+
+  function saveSlot() {
+    const custom = document.getElementById('modalInput').value.trim();
+    const finalCat = custom || selectedModalCat;
+    if (!slotData[editingSlotKey]) slotData[editingSlotKey] = {};
+    slotData[editingSlotKey].cat = custom ? '' : selectedModalCat;
+    slotData[editingSlotKey].customCat = custom;
+    if (finalCat) { lastUsedCat = finalCat; getCatColor(finalCat); }
+    document.getElementById('modalOverlay').classList.remove('open');
+    buildTimeline();
+    updateFocusCard();
+  }
+
+  // ── 초기화 ──
+  function init() {
+    // 샘플 데이터
+    const { h, m } = getCurrentSlot();
+    if (isInRange(h)) {
+      const prevMin = m === 0 ? 45 : m - 15;
+      const prevH = m === 0 ? h - 1 : h;
+      if (isInRange(prevH)) {
+        slotData[getSlotKey(prevH, prevMin)] = { cat: '💼 업무', customCat: '' };
+        getCatColor('💼 업무');
+      }
+      const prev2Min = prevMin === 0 ? 45 : prevMin - 15;
+      const prev2H = prevMin === 0 ? prevH - 1 : prevH;
+      if (isInRange(prev2H)) {
+        slotData[getSlotKey(prev2H, prev2Min)] = { cat: '📚 공부', customCat: '' };
+        getCatColor('📚 공부');
+      }
+    }
+
+    changeDate(0);
+    updateFocusCard();
+    lastSlotKey = getCurrentSlot().key;
+    updateTimer();
+    setInterval(updateTimer, 1000);
+  }
+
+  init();
+</script>
+</body>
+</html>
