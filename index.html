@@ -751,7 +751,7 @@
 
   // ── 날짜 ──
   let dateOffset = 0;
-  function changeDate(d) {
+function changeDate(d) {
     dateOffset += d;
     const dt = new Date();
     dt.setDate(dt.getDate() + dateOffset);
@@ -762,8 +762,15 @@
     document.getElementById('dateSubLabel').textContent =
       `${dt.getFullYear()}년 ${dt.getMonth()+1}월 ${dt.getDate()}일 ${days[dt.getDay()]}요일`;
     buildTimeline();
-  }
 
+    // 해당 날짜 데이터 불러오기
+    const dateStr = (() => {
+      const d2 = new Date();
+      d2.setDate(d2.getDate() + dateOffset);
+      return `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}-${String(d2.getDate()).padStart(2,'0')}`;
+    })();
+    loadFromSheet(dateStr);
+  }
   // ── 타임라인 빌드 ──
   function buildTimeline() {
     const timeline = document.getElementById('timeline');
