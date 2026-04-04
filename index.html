@@ -540,6 +540,17 @@
     display: flex;
     gap: 8px;
   }
+
+  .modal-delete {
+    background: none;
+    border: 1px solid #F0D0CC;
+    border-radius: 10px;
+    padding: 11px;
+    font-family: 'Gowun Dodum', sans-serif;
+    font-size: 12px;
+    color: var(--accent);
+    cursor: pointer;
+  }
   .modal-cancel {
     flex: 1;
     background: var(--surface2);
@@ -1046,30 +1057,43 @@
   }
 
   // ── 슬롯 모달 ──
+function getPrevSlotCat(h, min) {
+    // 직전 슬롯 key 계산
+    let prevMin = min - 15, prevH = h;
+    if (prevMin < 0) { prevMin = 45; prevH = h - 1; }
+    if (!isInRange(prevH)) return '';
+    const prevKey = getSlotKey(prevH, prevMin);
+    const d = slotData[prevKey];
+    return d?.cat || d?.customCat || '';
+  }
+
   function openModal(key, h, min) {
     editingSlotKey = key;
-    selectedModalCat = slotData[key]?.cat || lastUsedCat || '';
     const endMin = min+15, endH = endMin>=60?h+1:h, endMM = endMin>=60?0:endMin;
     document.getElementById('modalSlotTime').textContent =
       `${displayHour(h)}:${String(min).padStart(2,'0')} – ${displayHour(endH)}:${String(endMM).padStart(2,'0')}`;
     document.getElementById('modalInput').value = slotData[key]?.customCat || '';
 
-    // 직전 입력 칩
+    // 추천: 직전 슬롯 카테고리 우선, 없으면 lastUsedCat
+    const prevCat = getPrevSlotCat(h, min);
+    const recentCat = prevCat || lastUsedCat;
     const recentChip = document.getElementById('recentCatChip');
-    if (lastUsedCat) {
+    if (recentCat) {
       recentChip.style.display = 'block';
-      recentChip.textContent = `↩ ${lastUsedCat}`;
-      recentChip.style.backgroundColor = getCatColor(lastUsedCat) || '';
-      recentChip.dataset.catval = lastUsedCat;
+      recentChip.textContent = `↩ ${recentCat}`;
+      recentChip.style.backgroundColor = getCatColor(recentCat) || '#F0EDE8';
+      recentChip.dataset.catval = recentCat;
     } else {
       recentChip.style.display = 'none';
     }
 
+    const currentCat = slotData[key]?.cat || slotData[key]?.customCat || '';
     document.querySelectorAll('.modal-cat-chip').forEach(c => {
-      c.classList.toggle('selected', c.dataset.catval === selectedModalCat);
+      c.classList.toggle('selected', c.dataset.catval === currentCat);
     });
     document.getElementById('modalOverlay').classList.add('open');
   }
+  
   function closeModal(e) {
     if (!e || e.target===document.getElementById('modalOverlay'))
       document.getElementById('modalOverlay').classList.remove('open');
