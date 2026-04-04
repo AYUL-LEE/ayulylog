@@ -846,13 +846,26 @@
     document.getElementById('hourModalOverlay').classList.add('open');
   }
 
-  function saveHourModal() {
+function saveHourModal() {
     if (!hourData[editingHourKey]) hourData[editingHourKey] = {};
     hourData[editingHourKey].food = document.getElementById('hourModalFood').value;
     hourData[editingHourKey].buy = document.getElementById('hourModalBuy').value;
     hourData[editingHourKey].insight = document.getElementById('hourModalInsight').value;
     document.getElementById('hourModalOverlay').classList.remove('open');
     buildTimeline();
+
+    // 구글 시트 저장
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        type: 'hour',
+        date: getDateStr(),
+        hour: editingHourKey,
+        food: hourData[editingHourKey].food,
+        buy: hourData[editingHourKey].buy,
+        insight: hourData[editingHourKey].insight
+      })
+    }).catch(err => console.log(err));
   }
 
   function closeHourModal(e) {
@@ -900,6 +913,13 @@
     document.getElementById('modalInput').value = '';
   }
 
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfRCJSLMlIyMRA5PKGruqoTo1yt-de57wDbhafTlOZhjsI0T0jTa0MZB7_UTWLIKnj/exec';
+
+  function getDateStr() {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+  }
+
   function saveSlot() {
     const custom = document.getElementById('modalInput').value.trim();
     const finalCat = custom || selectedModalCat;
@@ -910,6 +930,19 @@
     document.getElementById('modalOverlay').classList.remove('open');
     buildTimeline();
     updateFocusCard();
+
+    // 구글 시트 저장
+    if (finalCat) {
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'slot',
+          date: getDateStr(),
+          time: editingSlotKey,
+          cat: finalCat
+        })
+      }).catch(err => console.log(err));
+    }
   }
 
   // ── 초기화 ──
