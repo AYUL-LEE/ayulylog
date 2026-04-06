@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>슬롯 로그</title>
+<title>Ayuly Log</title>
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -93,7 +93,6 @@
     margin-bottom: 10px;
   }
 
-  /* 왼쪽: 현재 슬롯 */
   .focus-slot-block {
     display: flex;
     flex-direction: column;
@@ -116,7 +115,6 @@
   }
   .focus-category.empty { font-style: italic; }
 
-  /* 가운데: 현재 시각 */
   .focus-now-block {
     display: flex;
     flex-direction: column;
@@ -135,7 +133,6 @@
     letter-spacing: -0.5px;
   }
 
-  /* 오른쪽: 남은 시간 텍스트 */
   .focus-timer-block {
     display: flex;
     flex-direction: column;
@@ -153,7 +150,6 @@
     color: var(--accent);
   }
 
-  /* 프로그레스 바 */
   .focus-progress-wrap {
     display: flex;
     align-items: center;
@@ -186,7 +182,6 @@
     padding: 8px 10px 80px;
   }
 
-  /* 한 행 = 시간레이블 + 슬롯4개 + 📝버튼 */
   .hour-row {
     display: grid;
     grid-template-columns: 36px 1fr 1fr 1fr 1fr 28px;
@@ -204,7 +199,13 @@
     justify-content: flex-end;
     padding-right: 4px;
     padding-top: 2px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+    user-select: none;
   }
+  .hour-label:hover { background: var(--surface2); }
+  .hour-label.row-selected { color: var(--accent3); font-weight: 600; }
 
   .hour-note-btn {
     display: flex;
@@ -269,7 +270,6 @@
   .slot.active .slot-time { color: var(--accent); }
   .slot.colored .slot-time { color: rgba(0,0,0,0.4); }
 
-  /* 카테고리 색상 채우기 */
   .slot.colored {
     border-color: transparent;
   }
@@ -287,24 +287,7 @@
     max-width: 100%;
   }
 
-  /* 시간 레이블 클릭 */
-  .hour-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 4px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background 0.15s;
-    user-select: none;
-  }
-  .hour-label:hover { background: var(--surface2); }
-  .hour-label.row-selected { color: var(--accent3); font-weight: 600; }
-
-  /* 일괄 선택 바 */
+  /* ── 일괄 선택 바 ── */
   .bulk-bar {
     position: fixed;
     bottom: 70px;
@@ -325,21 +308,30 @@
   .bulk-bar-title {
     font-size: 11px;
     color: var(--text-muted);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .bulk-bar-title span { color: var(--accent3); font-weight: 600; }
+
+  /* 카테고리 그룹 */
+  .bulk-bar-group-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    margin-top: 8px;
+    letter-spacing: 0.05em;
+  }
   .bulk-bar-cats {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
+    gap: 5px;
+    margin-bottom: 4px;
   }
   .bulk-cat-chip {
     background: var(--surface2);
     border: 1.5px solid var(--border);
     border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 12px;
+    padding: 5px 11px;
+    font-size: 11px;
     cursor: pointer;
     transition: all 0.15s;
     font-family: 'Gowun Dodum', sans-serif;
@@ -349,9 +341,19 @@
     border-color: var(--accent3);
     color: white;
   }
+  .bulk-cat-chip.project {
+    border-color: var(--accent4);
+    background: #FFFBF0;
+  }
+  .bulk-cat-chip.project:hover {
+    background: var(--accent4);
+    border-color: var(--accent4);
+    color: var(--text);
+  }
   .bulk-input-row {
     display: flex;
     gap: 6px;
+    margin-top: 8px;
   }
   .bulk-input {
     flex: 1;
@@ -508,17 +510,28 @@
     font-size: 15px;
     margin-bottom: 14px;
   }
+
+  /* 모달 카테고리 그룹 */
+  .modal-group-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    margin-top: 10px;
+    letter-spacing: 0.05em;
+  }
+  .modal-group-label:first-of-type { margin-top: 0; }
+
   .modal-cats {
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
-    margin-bottom: 14px;
+    margin-bottom: 4px;
   }
   .modal-cat-chip {
     background: var(--surface2);
     border: 1.5px solid var(--border);
     border-radius: 20px;
-    padding: 7px 16px;
+    padding: 7px 14px;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.15s;
@@ -528,6 +541,15 @@
     background: var(--accent);
     border-color: var(--accent);
     color: white;
+  }
+  .modal-cat-chip.project {
+    border-color: var(--accent4);
+    background: #FFFBF0;
+  }
+  .modal-cat-chip.project:hover, .modal-cat-chip.project.selected {
+    background: var(--accent4);
+    border-color: var(--accent4);
+    color: var(--text);
   }
 
   .modal-input {
@@ -541,6 +563,7 @@
     color: var(--text);
     outline: none;
     margin-bottom: 14px;
+    margin-top: 10px;
     transition: border 0.15s;
   }
   .modal-input:focus { border-color: var(--accent); background: white; }
@@ -619,7 +642,6 @@
     gap: 10px;
   }
 
-  /* scrollbar */
   .timeline-section::-webkit-scrollbar { width: 3px; }
   .timeline-section::-webkit-scrollbar-track { background: transparent; }
   .timeline-section::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
@@ -638,27 +660,22 @@
     <button onclick="changeDate(1)">›</button>
   </div>
 
-  <!-- 현재 슬롯 포커스 카드 -->
   <div class="focus-card">
     <div class="focus-card-top">
-      <!-- 왼쪽: 현재 슬롯 -->
       <div class="focus-slot-block">
         <div class="focus-slot-label">현재 슬롯</div>
         <div class="focus-slot-time" id="currentSlotTime">14:30–14:45</div>
         <div class="focus-category empty" id="currentCategory">미입력</div>
       </div>
-      <!-- 가운데: 현재 시각 -->
       <div class="focus-now-block">
         <div class="focus-now-label">현재 시각</div>
         <div class="focus-now-time" id="nowTime">14:32</div>
       </div>
-      <!-- 오른쪽: 남은 시간 -->
       <div class="focus-timer-block">
         <div class="focus-timer-label">남은 시간</div>
         <div class="focus-timer-value" id="timerText">8분 23초</div>
       </div>
     </div>
-    <!-- 프로그레스 바 -->
     <div class="focus-progress-wrap">
       <div class="focus-progress-time" id="progressStart">14:30</div>
       <div class="focus-progress-bar">
@@ -675,15 +692,28 @@
 <!-- 일괄 선택 바 -->
 <div class="bulk-bar" id="bulkBar">
   <div class="bulk-bar-title"><span id="bulkCount">0</span>개 슬롯 선택됨</div>
+
+  <div class="bulk-bar-group-label">일상</div>
   <div class="bulk-bar-cats">
     <div class="bulk-cat-chip" onclick="applyBulkCat('🚗 운전')">🚗 운전</div>
     <div class="bulk-cat-chip" onclick="applyBulkCat('👶 도하')">👶 도하</div>
     <div class="bulk-cat-chip" onclick="applyBulkCat('🍚 식사')">🍚 식사</div>
     <div class="bulk-cat-chip" onclick="applyBulkCat('💼 업무')">💼 업무</div>
-    <div class="bulk-cat-chip" onclick="applyBulkCat('📚 공부')">📚 공부</div>
-    <div class="bulk-cat-chip" onclick="applyBulkCat('🏃 운동')">🏃 운동</div>
-    <div class="bulk-cat-chip" onclick="applyBulkCat('😴 휴식')">😴 휴식</div>
+    <div class="bulk-cat-chip" onclick="applyBulkCat('😴 잠')">😴 잠</div>
+    <div class="bulk-cat-chip" onclick="applyBulkCat('🪥 씻기')">🪥 씻기</div>
+    <div class="bulk-cat-chip" onclick="applyBulkCat('👗 나갈준비')">👗 나갈준비</div>
+    <div class="bulk-cat-chip" onclick="applyBulkCat('📱 컨텐츠소비')">📱 컨텐츠소비</div>
+    <div class="bulk-cat-chip" onclick="applyBulkCat('🌀 멍때리기')">🌀 멍때리기</div>
   </div>
+
+  <div class="bulk-bar-group-label">프로젝트</div>
+  <div class="bulk-bar-cats">
+    <div class="bulk-cat-chip project" onclick="applyBulkCat('🏆 AI공모전')">🏆 AI공모전</div>
+    <div class="bulk-cat-chip project" onclick="applyBulkCat('⚙️ 개인AX셋업')">⚙️ 개인AX셋업</div>
+    <div class="bulk-cat-chip project" onclick="applyBulkCat('🤝 남편AI앱지원')">🤝 남편AI앱지원</div>
+    <div class="bulk-cat-chip project" onclick="applyBulkCat('🏠 깨끗한집만들기')">🏠 깨끗한집만들기</div>
+  </div>
+
   <div class="bulk-input-row">
     <input class="bulk-input" id="bulkInput" placeholder="직접 입력 후 엔터..." />
     <button class="bulk-save-btn" onclick="applyBulkCustom()">저장</button>
@@ -697,16 +727,30 @@
     <div class="modal-handle"></div>
     <div class="modal-slot-time" id="modalSlotTime">14:30 – 14:45</div>
     <div class="modal-title">이 시간에 뭘 했나요?</div>
+
     <div id="recentCatChip" class="modal-cat-chip recent-chip" style="display:none; margin-bottom:8px;" onclick="selectModalCatAndSave(this.dataset.catval)"></div>
+
+    <div class="modal-group-label">일상</div>
     <div class="modal-cats">
       <div class="modal-cat-chip" data-catval="🚗 운전" onclick="selectModalCatAndSave('🚗 운전')">🚗 운전</div>
       <div class="modal-cat-chip" data-catval="👶 도하" onclick="selectModalCatAndSave('👶 도하')">👶 도하</div>
       <div class="modal-cat-chip" data-catval="🍚 식사" onclick="selectModalCatAndSave('🍚 식사')">🍚 식사</div>
       <div class="modal-cat-chip" data-catval="💼 업무" onclick="selectModalCatAndSave('💼 업무')">💼 업무</div>
-      <div class="modal-cat-chip" data-catval="📚 공부" onclick="selectModalCatAndSave('📚 공부')">📚 공부</div>
-      <div class="modal-cat-chip" data-catval="🏃 운동" onclick="selectModalCatAndSave('🏃 운동')">🏃 운동</div>
-      <div class="modal-cat-chip" data-catval="😴 휴식" onclick="selectModalCatAndSave('😴 휴식')">😴 휴식</div>
+      <div class="modal-cat-chip" data-catval="😴 잠" onclick="selectModalCatAndSave('😴 잠')">😴 잠</div>
+      <div class="modal-cat-chip" data-catval="🪥 씻기" onclick="selectModalCatAndSave('🪥 씻기')">🪥 씻기</div>
+      <div class="modal-cat-chip" data-catval="👗 나갈준비" onclick="selectModalCatAndSave('👗 나갈준비')">👗 나갈준비</div>
+      <div class="modal-cat-chip" data-catval="📱 컨텐츠소비" onclick="selectModalCatAndSave('📱 컨텐츠소비')">📱 컨텐츠소비</div>
+      <div class="modal-cat-chip" data-catval="🌀 멍때리기" onclick="selectModalCatAndSave('🌀 멍때리기')">🌀 멍때리기</div>
     </div>
+
+    <div class="modal-group-label">프로젝트</div>
+    <div class="modal-cats">
+      <div class="modal-cat-chip project" data-catval="🏆 AI공모전" onclick="selectModalCatAndSave('🏆 AI공모전')">🏆 AI공모전</div>
+      <div class="modal-cat-chip project" data-catval="⚙️ 개인AX셋업" onclick="selectModalCatAndSave('⚙️ 개인AX셋업')">⚙️ 개인AX셋업</div>
+      <div class="modal-cat-chip project" data-catval="🤝 남편AI앱지원" onclick="selectModalCatAndSave('🤝 남편AI앱지원')">🤝 남편AI앱지원</div>
+      <div class="modal-cat-chip project" data-catval="🏠 깨끗한집만들기" onclick="selectModalCatAndSave('🏠 깨끗한집만들기')">🏠 깨끗한집만들기</div>
+    </div>
+
     <input class="modal-input" id="modalInput" placeholder="직접 입력 후 엔터..." />
     <div class="modal-actions">
       <button class="modal-cancel" onclick="closeModal()">취소</button>
@@ -781,12 +825,10 @@
   let editingHourKey = '';
   let dateOffset = 0;
 
-  // 다중 선택
   let selectedSlots = new Set();
   let isDragging = false;
   let dragStartKey = null;
 
-  // ── 시간 계산 ──
   function getNow() { return new Date(); }
   function realHour(h) { return h >= 24 ? h - 24 : h; }
   function getSlotKey(h, m) { return `${String(realHour(h)).padStart(2,'0')}:${String(m).padStart(2,'0')}`; }
@@ -810,29 +852,20 @@
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  // ── 타이머 & 현재시각 ──
   let lastSlotKey = '';
   function updateTimer() {
     const secs = getSecondsLeft();
     const m = Math.floor(secs / 60), s = secs % 60;
-
-    // 남은 시간 텍스트
     document.getElementById('timerText').textContent = `${m}분 ${String(s).padStart(2,'0')}초`;
-
-    // 프로그레스 바 (경과 비율)
     const pct = ((15 * 60 - secs) / (15 * 60)) * 100;
     document.getElementById('progressFill').style.width = `${pct}%`;
-
-    // 현재 시각
     const now = getNow();
     document.getElementById('nowTime').textContent =
       `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
     const { key } = getCurrentSlot();
     if (key !== lastSlotKey) { lastSlotKey = key; buildTimeline(); updateFocusCard(); }
   }
 
-  // ── 포커스 카드 ──
   function updateFocusCard() {
     const { h, m } = getCurrentSlot();
     const endM = m + 15, endH = endM >= 60 ? h+1 : h, endMM = endM >= 60 ? 0 : endM;
@@ -841,7 +874,6 @@
     document.getElementById('currentSlotTime').textContent = `${startStr}–${endStr}`;
     document.getElementById('progressStart').textContent = startStr;
     document.getElementById('progressEnd').textContent = endStr;
-
     const { key } = getCurrentSlot();
     const d = slotData[key];
     const cat = d?.cat || d?.customCat || '';
@@ -850,7 +882,6 @@
     catEl.className = 'focus-category' + (cat ? '' : ' empty');
   }
 
-  // ── 날짜 ──
   function changeDate(d) {
     dateOffset += d;
     const dt = new Date(); dt.setDate(dt.getDate() + dateOffset);
@@ -864,7 +895,6 @@
     loadFromSheet(getDateStr());
   }
 
-  // ── 저장 공통 ──
   function persistSlot(key, cat) {
     if (!slotData[key]) slotData[key] = {};
     slotData[key].cat = cat;
@@ -877,7 +907,6 @@
     }).catch(e => console.log(e));
   }
 
-  // ── 타임라인 빌드 ──
   function buildTimeline() {
     const timeline = document.getElementById('timeline');
     timeline.innerHTML = '';
@@ -892,7 +921,6 @@
       row.className = 'hour-row';
       row.id = `hour-row-${h}`;
 
-      // 시간 레이블 (모바일: 탭하면 행 전체 선택)
       const label = document.createElement('div');
       label.className = 'hour-label';
       label.style.color = h >= 24 ? '#B8A8D4' : '';
@@ -900,7 +928,6 @@
       label.addEventListener('click', () => selectHourRow(h));
       row.appendChild(label);
 
-      // 슬롯 4개
       [0,15,30,45].forEach(min => {
         const key = getSlotKey(h, min);
         const d = slotData[key] || {};
@@ -922,11 +949,9 @@
 
         slot.innerHTML = `<div class="slot-time">:${String(min).padStart(2,'0')}</div>${cat?`<div class="slot-cat-label">${cat}</div>`:''}`;
 
-        // PC 드래그 이벤트
         slot.addEventListener('mousedown', e => { e.preventDefault(); startDrag(key, slot); });
         slot.addEventListener('mouseover', () => { if (isDragging) extendDrag(key, slot); });
         slot.addEventListener('mouseup', () => endDrag());
-        // 클릭 (드래그 아닌 경우)
         slot.addEventListener('click', () => {
           if (!isDragging && selectedSlots.size === 0) openModal(key, h, min);
         });
@@ -934,7 +959,6 @@
         row.appendChild(slot);
       });
 
-      // 📝 버튼
       const noteBtn = document.createElement('button');
       noteBtn.className = `hour-note-btn${hasData?' has-data':''}`;
       noteBtn.textContent = hasData ? '✓' : '📝';
@@ -952,7 +976,6 @@
     }
   }
 
-  // ── 드래그 선택 (PC) ──
   let dragKeys = [];
   function startDrag(key, el) {
     isDragging = true;
@@ -974,11 +997,9 @@
     if (selectedSlots.size > 1) {
       showBulkBar();
     } else if (selectedSlots.size === 1) {
-      // 단일 클릭처럼 모달 열기
       const key = [...selectedSlots][0];
       selectedSlots.clear();
       updateSelectionUI();
-      // key에서 h, min 파싱
       const [hStr, mStr] = key.split(':');
       const rh = parseInt(hStr), min = parseInt(mStr);
       const h = rh < 4 ? rh + 24 : rh;
@@ -986,7 +1007,6 @@
     }
   }
 
-  // ── 모바일: 시간 레이블 탭으로 행 전체 선택 ──
   function selectHourRow(h) {
     const keys = [0,15,30,45].map(m => getSlotKey(h, m));
     const allSelected = keys.every(k => selectedSlots.has(k));
@@ -1039,7 +1059,6 @@
     applyBulkCat(val);
   }
 
-  // ── 시간당 기록 ──
   function openHourModal(hKey, hour) {
     editingHourKey = hKey;
     const hd = hourData[hKey] || {};
@@ -1067,7 +1086,6 @@
       document.getElementById('hourModalOverlay').classList.remove('open');
   }
 
-  // ── 슬롯 모달 ──
   function getPrevSlotCat(h, min) {
     let prevMin = min - 15, prevH = h;
     if (prevMin < 0) { prevMin = 45; prevH = h - 1; }
@@ -1084,7 +1102,6 @@
       `${displayHour(h)}:${String(min).padStart(2,'0')} – ${displayHour(endH)}:${String(endMM).padStart(2,'0')}`;
     document.getElementById('modalInput').value = slotData[key]?.customCat || '';
 
-    // 추천: 직전 슬롯 카테고리 우선, 없으면 lastUsedCat
     const prevCat = getPrevSlotCat(h, min);
     const recentCat = prevCat || lastUsedCat;
     const recentChip = document.getElementById('recentCatChip');
@@ -1109,7 +1126,6 @@
       document.getElementById('modalOverlay').classList.remove('open');
   }
 
-  // 칩 클릭 → 즉시 저장
   function selectModalCatAndSave(cat) {
     persistSlot(editingSlotKey, cat);
     document.getElementById('modalOverlay').classList.remove('open');
@@ -1145,12 +1161,10 @@
     }).catch(e => console.log(e));
   }
 
-  // ── 시트에서 불러오기 ──
   function loadFromSheet(date) {
     fetch(`${SCRIPT_URL}?date=${date}`)
       .then(r => r.json())
       .then(data => {
-        // 해당 날짜 데이터 초기화
         Object.keys(slotData).forEach(k => delete slotData[k]);
         Object.keys(hourData).forEach(k => delete hourData[k]);
         data.slots.forEach(s => { slotData[s.time] = { cat: s.cat, customCat:'' }; getCatColor(s.cat); });
@@ -1160,7 +1174,6 @@
       }).catch(e => console.log(e));
   }
 
-  // ── 초기화 ──
   function init() {
     changeDate(0);
     updateFocusCard();
@@ -1168,11 +1181,9 @@
     updateTimer();
     setInterval(updateTimer, 1000);
 
-    // bulk input 엔터
     document.getElementById('bulkInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') applyBulkCustom();
     });
-    // 모달 input 엔터
     document.getElementById('modalInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') saveSlot();
     });
